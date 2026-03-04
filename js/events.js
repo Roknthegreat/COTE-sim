@@ -222,6 +222,252 @@ const Events = (() => {
 
   ];
 
+  // ── NPC Interruption Templates (Layer 3) ─────────────────
+  const INTERRUPT_EVENTS = [
+    {
+      id: "hallway_confrontation",
+      weight: 1,
+      generate: (state) => {
+        const hostile = GameState.getAllNPCs().filter(n =>
+          n.relationshipWithPlayer < -15 && !n.isExpelled && n.agendaStage >= 1
+        );
+        if (hostile.length === 0) return null;
+        const npc = hostile[Math.floor(Math.random() * hostile.length)];
+        return {
+          type: "interrupt",
+          id: "hallway_confrontation",
+          npcId: npc.id,
+          title: `⚡ INTERRUPTED — ${npc.displayName}`,
+          setting: "SCHOOL CORRIDOR",
+          narrative: `You're heading to your next destination when ${npc.displayName} steps directly into your path.\n\n"I've been meaning to talk to you." The tone isn't friendly. Their eyes say they've been waiting for this.`,
+          choices: [
+            { label: "Hold your ground — don't show anything",       effect: { wilGain: 0.3 }, outcome: "You don't flinch. They recalibrate what they thought they knew about you." },
+            { label: "De-escalate — choose your words carefully",    effect: { rel: 8, chaGain: 0.2 }, outcome: "You talk them down. Temporarily. The tension doesn't disappear." },
+            { label: "Turn it back on them — play offense",          effect: { rel: -5, infamy: 3 }, outcome: "You put them on the back foot. They remember this exchange differently." },
+            { label: "Walk past without engaging",                   effect: { rel: -10, npcThreat: true }, outcome: "They let you pass. Their attention on you intensifies." },
+          ],
+        };
+      },
+    },
+    {
+      id: "curious_observer",
+      weight: 2,
+      generate: (state) => {
+        const neutral = GameState.getAllNPCs().filter(n =>
+          Math.abs(n.relationshipWithPlayer) < 20 && !n.isExpelled && n.knownToPlayer
+        );
+        if (neutral.length === 0) return null;
+        const npc = neutral[Math.floor(Math.random() * neutral.length)];
+        return {
+          type: "interrupt",
+          id: "curious_observer",
+          npcId: npc.id,
+          title: `⚡ INTERRUPTED — ${npc.displayName}`,
+          setting: "BETWEEN CLASSES",
+          narrative: `${npc.displayName} falls into step beside you without asking.\n\n"I've seen you around. I've been asking about you. You're not what I expected."`,
+          choices: [
+            { label: '"What did you expect?"',             effect: { rel: 8, perGain: 0.3 }, outcome: "Their answer is more honest than you anticipated. You file it." },
+            { label: "Give them nothing — stay unreadable", effect: { stlGain: 0.4 }, outcome: "They're uncertain what to make of you. Good." },
+            { label: "Flip it — ask what they want",        effect: { rel: 5, chaGain: 0.3 }, outcome: "Direct. They appreciate it or they don't. Either way you have data." },
+          ],
+        };
+      },
+    },
+    {
+      id: "ally_warning",
+      weight: 2,
+      generate: (state) => {
+        const allies = GameState.getAllNPCs().filter(n =>
+          n.relationshipWithPlayer >= 25 && !n.isExpelled
+        );
+        if (allies.length === 0) return null;
+        const npc = allies[Math.floor(Math.random() * allies.length)];
+        const threats = GameState.getAllNPCs().filter(n =>
+          n.relationshipWithPlayer < -20 && !n.isExpelled
+        );
+        const threatNPC = threats.length > 0 ? threats[0] : null;
+        return {
+          type: "interrupt",
+          id: "ally_warning",
+          npcId: npc.id,
+          title: `⚡ ${npc.displayName} — PRIVATE`,
+          setting: "QUIET MOMENT",
+          narrative: `${npc.displayName} finds you when no one is watching. Their expression isn't casual.\n\n"I heard something. ${threatNPC ? `${threatNPC.displayName} is moving against you —` : "Someone is making moves against you —"} I thought you'd want to know before it reaches you."`,
+          choices: [
+            { label: "Get everything they know — press for details",  effect: { rel: 8, perGain: 0.5 }, outcome: "They tell you more than they planned to. Trust deepens." },
+            { label: "Thank them and file it",                        effect: { rel: 5 }, outcome: "Clean. Efficient. They understand." },
+            { label: "Ask why they're telling you this",              effect: { rel: 3, perGain: 0.3 }, outcome: "The answer matters. You'll remember it." },
+          ],
+        };
+      },
+    },
+    {
+      id: "witnessed_conflict",
+      weight: 2,
+      generate: (state) => {
+        const npcs = GameState.getAllNPCs().filter(n => !n.isExpelled);
+        if (npcs.length < 2) return null;
+        const idx1 = Math.floor(Math.random() * npcs.length);
+        let idx2 = Math.floor(Math.random() * npcs.length);
+        while (idx2 === idx1) idx2 = Math.floor(Math.random() * npcs.length);
+        const a = npcs[idx1], b = npcs[idx2];
+        return {
+          type: "interrupt",
+          id: "witnessed_conflict",
+          title: "⚡ WITNESSED — CONFRONTATION",
+          setting: "COMMON AREA",
+          narrative: `${a.displayName} and ${b.displayName} — the middle of something that was clearly not meant to be public. You've walked into it before either noticed you.`,
+          choices: [
+            { label: "Back away unseen — they don't know you saw", effect: { stlGain: 0.4, perGain: 0.3 }, outcome: "You file what you observed. Neither of them knows." },
+            { label: "Make your presence known — defuse it",       effect: { socialRep: 3 }, outcome: "They reset. Grateful, or at least they pretend to be." },
+            { label: "Watch — let it fully play out",              effect: { perGain: 0.6, infamy: 2 }, outcome: "You learn more than expected. They notice you eventually." },
+          ],
+        };
+      },
+    },
+    {
+      id: "challenge_issued",
+      weight: 1,
+      generate: (state) => {
+        if (state.player.reputation.combat < 20) return null;
+        const fighters = GameState.getAllNPCs().filter(n =>
+          n.currentStats.CMB >= 40 && !n.isExpelled
+        );
+        if (fighters.length === 0) return null;
+        const npc = fighters[Math.floor(Math.random() * fighters.length)];
+        return {
+          type: "interrupt",
+          id: "challenge_issued",
+          npcId: npc.id,
+          title: `⚡ CHALLENGE — ${npc.displayName}`,
+          setting: "TRAINING AREA",
+          narrative: `${npc.displayName} is waiting where you pass every day. Today they step forward.\n\n"I want to see what the rumors are about. Here. Now." It isn't a question.`,
+          choices: [
+            { label: "Accept — go all out",           effect: { combatRep: 5 }, outcome: "The fight happens. The result enters the school's informal record." },
+            { label: "Accept — set your own terms",   effect: { wilGain: 0.3 }, outcome: "You name conditions they didn't expect. They accept." },
+            { label: "Decline — not on their schedule", effect: { rel: -8, wilGain: 0.4 }, outcome: "They're surprised. The challenge remains open between you." },
+          ],
+        };
+      },
+    },
+    {
+      id: "anonymous_tip",
+      weight: 1,
+      generate: (state) => {
+        return {
+          type: "interrupt",
+          id: "anonymous_tip",
+          title: "⚡ ANONYMOUS CONTACT",
+          setting: "UNEXPECTED MOMENT",
+          narrative: `A student you don't recognize passes close and says, without slowing:\n\n"Room 3C, Thursday after seven. If you want to know what's actually happening in this school."`,
+          choices: [
+            { label: "Note it — follow up when ready",      effect: { perGain: 0.4 }, outcome: "You commit it to memory. The room number. The time. Thursday." },
+            { label: "Call after them — get more",         effect: { chaGain: 0.2 }, outcome: "They don't slow. But they heard you. The door opens slightly." },
+            { label: "Dismiss it — too vague",             effect: {}, outcome: "You move on. The information expires unused." },
+          ],
+        };
+      },
+    },
+    {
+      id: "overheard_conversation",
+      weight: 2,
+      generate: (state) => {
+        if (state.player.stats.PER < 45) return null;
+        const npcs = GameState.getAllNPCs().filter(n => !n.isExpelled && n.agendaStage >= 1);
+        if (npcs.length === 0) return null;
+        const npc = npcs[Math.floor(Math.random() * npcs.length)];
+        return {
+          type: "interrupt",
+          id: "overheard_conversation",
+          npcId: npc.id,
+          title: "⚡ OVERHEARD",
+          setting: "NEAR THE STAIRWELL",
+          narrative: `You catch your name spoken in a low voice. ${npc.displayName}, on the landing above, talking to someone out of view.\n\nThey don't know your hearing is better than they assumed.`,
+          choices: [
+            { label: "Stop and listen — take the risk",     effect: { perGain: 0.6, stlGain: 0.3 }, outcome: "The risk pays. You catch enough to act on." },
+            { label: "Make a sound — let them know you're there", effect: { rel: 5 }, outcome: "The conversation stops. The dynamic shifts when they realize." },
+            { label: "Walk on — pretend you heard nothing", effect: { wilGain: 0.2 }, outcome: "You play it perfectly. They don't know what you caught." },
+          ],
+        };
+      },
+    },
+  ];
+
+  // ── Weekly Pressure Generator (Layer 1) ──────────────────
+  function generateWeeklyPressures(state) {
+    const pressures = [];
+    const player = state.player;
+
+    // Academic danger
+    if (player.currentGrades && player.currentGrades.average !== undefined) {
+      const avg = player.currentGrades.average;
+      if (avg < 42) {
+        pressures.push({ type: "academic", severity: "critical", text: `Academic average at ${avg}% — expulsion threshold is near` });
+      } else if (avg < 62) {
+        pressures.push({ type: "academic", severity: "warning", text: `Academic performance below standard (${avg}%) — exam approaches` });
+      }
+    }
+    if (player.atExpulsionRisk) {
+      pressures.push({ type: "academic", severity: "critical", text: "FORMAL REVIEW PENDING — academic standing critical" });
+    }
+
+    // Hostile NPC activity
+    const hostileActive = GameState.getAllNPCs().filter(n =>
+      n.relationshipWithPlayer < -20 && n.agendaStage >= 2 && !n.isExpelled
+    );
+    hostileActive.slice(0, 2).forEach(npc => {
+      pressures.push({
+        type: "npc", severity: "high",
+        text: `${npc.displayName} (Class ${npc.class}) has been actively gathering intel on you`,
+        npcId: npc.id,
+      });
+    });
+
+    // Low class points
+    const playerClassPts = state.classPoints[player.class] || 1000;
+    if (playerClassPts < 600) {
+      pressures.push({ type: "resource", severity: "warning", text: `Class ${player.class} at ${playerClassPts} class points — demotion risk elevated` });
+    }
+
+    // High-agenda neutrals
+    const activeNPCs = GameState.getAllNPCs().filter(n =>
+      n.agendaStage >= 3 && !n.isExpelled && Math.abs(n.relationshipWithPlayer) < 20
+    );
+    if (activeNPCs.length > 0) {
+      const npc = activeNPCs[Math.floor(Math.random() * activeNPCs.length)];
+      pressures.push({ type: "unknown", severity: "medium", text: `${npc.displayName} is making unusual moves — motive still unknown`, npcId: npc.id });
+    }
+
+    // Month-end exam warning
+    if (state.week === 4) {
+      pressures.push({ type: "academic", severity: "reminder", text: "Monthly academic examination at end of this week" });
+    }
+
+    // Low S-points
+    if (player.spoints < 5000) {
+      pressures.push({ type: "resource", severity: "warning", text: `S-Point balance critically low (¥${player.spoints.toLocaleString()})` });
+    }
+
+    return pressures;
+  }
+
+  // ── Interruption Generator ────────────────────────────────
+  function generateInterruption(state) {
+    // Weight-based random selection from eligible templates
+    const eligible = INTERRUPT_EVENTS.filter(e => {
+      try { return e.generate(state) !== null; } catch { return false; }
+    });
+    if (eligible.length === 0) return null;
+
+    const totalWeight = eligible.reduce((sum, e) => sum + (e.weight || 1), 0);
+    let roll = Math.random() * totalWeight;
+    for (const template of eligible) {
+      roll -= (template.weight || 1);
+      if (roll <= 0) return template.generate(state);
+    }
+    return eligible[eligible.length - 1].generate(state);
+  }
+
   function getRandomSideEvent(state) {
     // Priority events first
     const priority = SIDE_EVENTS.filter(e =>
@@ -308,6 +554,8 @@ const Events = (() => {
   return {
     getRandomSideEvent,
     resolveEventChoice,
+    generateInterruption,
+    generateWeeklyPressures,
     SIDE_EVENTS,
   };
 })();

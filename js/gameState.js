@@ -16,7 +16,14 @@ const GameState = (() => {
     month: 1,
     week: 1,
     day: 1,
+    currentDay: 1,          // 1-7 within the week (Mon-Sun)
+    weekContextShown: false, // Whether week context board has been shown
+    weekDayActions: {},      // { dayNum: [actionKey, ...] }
     apRemaining: CONFIG.AP_PER_WEEK,
+
+    // ── Active Threats Dashboard ──────────────────────────
+    activeThreats: [],       // [{ id, type, description, countdown, severity }]
+    pendingInterrupt: null,  // NPC interrupt event
 
     // ── Player ───────────────────────────────────────────
     player: {
@@ -195,6 +202,22 @@ const GameState = (() => {
 
   function resetWeeklyAP() {
     _state.apRemaining = CONFIG.AP_PER_WEEK;
+    _state.currentDay = 1;
+    _state.weekContextShown = false;
+    _state.weekDayActions = {};
+  }
+
+  function addThreat(threat) {
+    const existing = _state.activeThreats.findIndex(t => t.id === threat.id);
+    if (existing >= 0) {
+      _state.activeThreats[existing] = threat;
+    } else {
+      _state.activeThreats.push(threat);
+    }
+  }
+
+  function removeThreat(threatId) {
+    _state.activeThreats = _state.activeThreats.filter(t => t.id !== threatId);
   }
 
   function serialize() {
@@ -224,6 +247,8 @@ const GameState = (() => {
     getRelationshipTier,
     spendAP,
     resetWeeklyAP,
+    addThreat,
+    removeThreat,
     serialize,
     deserialize,
   };
