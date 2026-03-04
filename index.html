@@ -505,16 +505,461 @@
        ══════════════════════════════════════════════════════════ */
     #screen-main {
       display: grid;
-      grid-template-rows: 48px 1fr 120px;
+      grid-template-rows: 48px 1fr 52px 112px;
       grid-template-columns: 280px 1fr;
       grid-template-areas:
         "hud  hud"
         "stat main"
+        "stat days"
         "stat bar";
       background:
         linear-gradient(to bottom, rgba(6,9,17,0.88) 0%, rgba(6,9,17,0.72) 100%),
         url('/images/school-hallway.jpg') center/cover no-repeat fixed,
         linear-gradient(160deg, #0a1628 0%, #060911 100%);
+    }
+
+    /* ── Day Calendar Strip ── */
+    #day-strip {
+      grid-area: days;
+      background: rgba(6,9,17,0.96);
+      border-top: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 12px 0 8px;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .day-cells {
+      display: flex;
+      flex: 1;
+      gap: 1px;
+    }
+
+    .day-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 4px 6px;
+      flex: 1;
+      position: relative;
+      min-width: 36px;
+    }
+    .day-cell.current {
+      background: rgba(201,168,75,0.08);
+      border-bottom: 2px solid var(--gold);
+    }
+    .day-cell.done { opacity: 0.55; }
+    .day-cell.weekend .day-abbr { color: var(--gold-dim); }
+
+    .day-abbr {
+      font-family: 'Cinzel', serif;
+      font-size: 8px;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      line-height: 1;
+    }
+    .day-cell.current .day-abbr { color: var(--gold); }
+
+    .day-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .day-cell.current .day-dot {
+      background: var(--gold);
+      border-color: var(--gold);
+      box-shadow: 0 0 5px rgba(201,168,75,0.6);
+    }
+    .day-cell.done .day-dot {
+      background: var(--steel-dim);
+      border-color: var(--steel-dim);
+    }
+
+    .day-actions-icons {
+      font-size: 7px;
+      color: var(--steel);
+      letter-spacing: 0.05em;
+      line-height: 1;
+    }
+
+    .day-strip-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      border-left: 1px solid var(--border);
+      padding-left: 10px;
+    }
+
+    .day-ap-remaining {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+
+    .day-advance-btn {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      background: rgba(201,168,75,0.07);
+      border: 1px solid var(--border-gold);
+      color: var(--gold);
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .day-advance-btn:hover {
+      background: rgba(201,168,75,0.14);
+      border-color: var(--gold);
+      box-shadow: 0 0 10px rgba(201,168,75,0.15);
+    }
+
+    /* ── Threats Dashboard (in stat panel) ── */
+    .threats-header { color: var(--danger) !important; }
+
+    .threat-list { display: flex; flex-direction: column; gap: 4px; }
+
+    .threat-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 5px;
+      font-size: 10px;
+      color: var(--text-secondary);
+      padding: 5px 7px;
+      background: rgba(201,74,74,0.05);
+      border-left: 2px solid var(--danger);
+    }
+    .threat-item.warning {
+      border-left-color: var(--gold);
+      background: rgba(201,168,75,0.05);
+    }
+    .threat-item.medium {
+      border-left-color: var(--steel);
+      background: rgba(74,122,181,0.05);
+    }
+    .threat-desc { flex: 1; line-height: 1.4; }
+    .threat-countdown {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      color: var(--danger);
+      flex-shrink: 0;
+    }
+    .threat-item.warning .threat-countdown { color: var(--gold); }
+    .no-threats-msg { font-size: 10px; color: var(--text-muted); font-style: italic; padding: 2px 0; }
+
+    /* ── Context Board (modal variant) ── */
+    .context-board { padding: 4px 0; }
+
+    .context-week-title {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .context-pressure-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+
+    .context-pressure-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.02);
+      border-left: 2px solid var(--steel);
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .context-pressure-item.critical { border-left-color: var(--danger); background: rgba(201,74,74,0.05); }
+    .context-pressure-item.high     { border-left-color: var(--danger); }
+    .context-pressure-item.warning  { border-left-color: var(--gold);   background: rgba(201,168,75,0.04); }
+    .context-pressure-item.reminder { border-left-color: var(--steel);  }
+    .context-pressure-item.medium   { border-left-color: var(--silver); }
+    .context-pressure-icon { font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+
+    .context-ap-note {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+      padding: 12px 14px;
+      background: rgba(201,168,75,0.04);
+      border: 1px solid var(--border-gold);
+    }
+
+    /* ── Scene Modal (action micro-interactions) ── */
+    .scene-setting {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      color: var(--steel);
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .scene-narrative {
+      font-size: 13px;
+      line-height: 1.9;
+      color: var(--text-secondary);
+      font-style: italic;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.02);
+      border-left: 2px solid var(--border-blue);
+    }
+
+    .choice-hint {
+      display: block;
+      font-size: 10px;
+      color: var(--steel);
+      margin-top: 2px;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.1em;
+    }
+    .choice-label-text { display: block; }
+
+    /* ── Interrupt Modal ── */
+    .interrupt-header { border-color: var(--danger) !important; background: rgba(201,74,74,0.04) !important; }
+
+    .interrupt-setting {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      color: var(--danger);
+      margin-bottom: 12px;
+    }
+
+    .interrupt-narrative {
+      font-size: 13px;
+      line-height: 1.9;
+      color: var(--text-secondary);
+      padding: 14px 16px;
+      background: rgba(201,74,74,0.04);
+      border-left: 2px solid var(--danger);
+      white-space: pre-line;
+    }
+    .interrupt-choice { border-color: rgba(201,74,74,0.25) !important; }
+    .interrupt-choice:hover { border-color: var(--danger) !important; }
+
+    /* ── Week Consequences ── */
+    .consequence-label {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    /* ── Log scene outcome ── */
+    .log-scene-outcome {
+      font-size: 12px;
+      color: var(--steel);
+      margin-top: 4px;
+      font-style: italic;
+      padding-left: 8px;
+      border-left: 1px solid var(--border-blue);
+    }
+
+    /* ── NPC Detail agenda hint ── */
+    .detail-agenda {
+      font-size: 11px;
+      color: var(--danger);
+      padding: 6px 10px;
+      background: rgba(201,74,74,0.06);
+      border-left: 2px solid var(--danger);
+    }
+
+    /* ── Network Screen ── */
+    #screen-network {
+      background:
+        linear-gradient(to bottom, rgba(6,9,17,0.93) 0%, rgba(6,9,17,0.82) 100%),
+        linear-gradient(160deg, #0a1628 0%, #060911 100%);
+      flex-direction: column;
+    }
+
+    .network-header {
+      background: rgba(6,9,17,0.95);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .network-header-title {
+      font-family: 'Cinzel', serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      flex: 1;
+    }
+
+    #network-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 24px;
+    }
+
+    .network-filter-bar {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .network-tab {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      padding: 5px 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .network-tab.active, .network-tab:hover {
+      border-color: var(--steel);
+      color: var(--text-primary);
+      background: rgba(74,122,181,0.08);
+    }
+
+    .network-rows { display: flex; flex-direction: column; gap: 6px; }
+
+    .network-class-header {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--text-muted);
+      padding: 10px 0 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 6px;
+      margin-top: 10px;
+    }
+    .network-class-header:first-child { margin-top: 0; }
+
+    .network-npc-row {
+      background: rgba(12,18,32,0.75);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      transition: border-color 0.15s;
+    }
+    .network-npc-row:hover { border-color: rgba(255,255,255,0.1); }
+
+    .network-npc-left  { display: flex; flex-direction: column; gap: 3px; }
+    .network-npc-name  {
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .network-class-badge { font-size: 10px; }
+    .network-antagonist  { color: var(--danger); font-size: 10px; }
+    .network-hostile-badge {
+      font-family: 'Cinzel', serif;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      color: var(--danger);
+      border: 1px solid rgba(201,74,74,0.4);
+      padding: 1px 5px;
+    }
+
+    .network-npc-meta {
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 6px;
+    }
+
+    .network-npc-rel {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 2px;
+    }
+    .network-rel-bar {
+      width: 80px;
+      height: 2px;
+      background: rgba(255,255,255,0.06);
+      position: relative;
+    }
+    .network-rel-center {
+      position: absolute;
+      left: 50%;
+      top: -1px;
+      width: 1px;
+      height: 4px;
+      background: rgba(255,255,255,0.2);
+    }
+    .network-rel-fill {
+      position: absolute;
+      top: 0;
+      height: 100%;
+    }
+    .network-rel-label { font-size: 10px; font-family: 'Cinzel', serif; }
+
+    .network-npc-secret      { font-size: 10px; color: var(--gold); font-style: italic; }
+    .network-npc-secret.hidden { color: var(--text-muted); font-style: normal; }
+    .network-npc-agenda      { font-size: 10px; color: var(--danger); }
+
+    .network-npc-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      justify-content: center;
+    }
+    .network-action-btn {
+      font-family: 'Cinzel', serif;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      padding: 4px 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.12s;
+      min-width: 80px;
+      text-align: center;
+    }
+    .network-action-btn:hover:not(:disabled) {
+      border-color: var(--steel);
+      color: var(--text-primary);
+      background: rgba(74,122,181,0.08);
+    }
+    .network-action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .network-empty {
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .network-empty p { font-size: 13px; margin-bottom: 8px; }
+    .network-empty strong { color: var(--steel); }
+
+    .network-unknown-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 12px 0;
+      border-top: 1px solid var(--border);
+      margin-top: 12px;
     }
 
     /* HUD Bar */
@@ -1164,13 +1609,16 @@
     <span class="hud-sep">|</span>
     <div class="hud-item"><span id="hud-date">Year 1 — April, Week 1</span></div>
     <span class="hud-sep">·</span>
+    <div class="hud-item"><span id="hud-day" style="color:var(--steel);font-size:10px"></span></div>
+    <span class="hud-sep">·</span>
     <div class="hud-item">Class <strong id="hud-class">D</strong></div>
     <span class="hud-sep">·</span>
     <div class="hud-item"><strong id="hud-spoints">¥0</strong></div>
     <span class="hud-sep">·</span>
     <div class="hud-item"><strong id="hud-ap" style="color:var(--gold)">7 AP</strong></div>
     <div class="hud-spacer"></div>
-    <button class="hud-btn" onclick="UI.renderRosterScreen(); UI.showScreen('screen-roster')">ROSTER</button>
+    <button class="hud-btn" onclick="UI.renderNetworkScreen()">NETWORK</button>
+    <button class="hud-btn" onclick="UI.renderRosterScreen()">ROSTER</button>
     <button class="hud-btn" onclick="Game.saveGame(0)">SAVE</button>
     <button class="hud-btn" onclick="UI.showScreen('screen-title')">MENU</button>
   </header>
@@ -1183,6 +1631,9 @@
     <div id="narrative-log"></div>
   </main>
 
+  <!-- Day Calendar Strip (Layer 4) -->
+  <div id="day-strip"></div>
+
   <!-- Action Bar -->
   <footer id="action-bar"></footer>
 
@@ -1194,10 +1645,22 @@
 <div id="screen-roster" class="game-screen hidden">
   <div class="roster-header">
     <span class="roster-header-title">STUDENT ROSTER — ADVANCED NURTURING HIGH SCHOOL</span>
-    <button class="hud-btn" onclick="UI.showScreen('screen-main')" id="btn-roster-back">← BACK</button>
+    <button class="hud-btn" onclick="UI.renderMainGame(GameState.get())" id="btn-roster-back">← BACK</button>
     <button class="hud-btn" onclick="UI.showScreen('screen-title')" id="btn-roster-title">MENU</button>
   </div>
   <div id="roster-content"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN: STUDENT NETWORK (Layer 5 — Social Map)
+     ══════════════════════════════════════════════════════════ -->
+<div id="screen-network" class="game-screen hidden">
+  <div class="network-header">
+    <span class="network-header-title">STUDENT NETWORK — ADVANCED NURTURING HIGH SCHOOL</span>
+    <button class="hud-btn" onclick="UI.renderMainGame(GameState.get())">← BACK</button>
+    <button class="hud-btn" onclick="UI.showScreen('screen-title')">MENU</button>
+  </div>
+  <div id="network-content"></div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
